@@ -1,0 +1,23 @@
+name: OreFinder
+main: com.insanematrix.orefinder.OreFinder
+version: 1.0-SNAPSHOT
+commands:
+    find:
+        description: finds the ore specified
+        usage: /find <ore>
+    orefinder:
+        description: Info about orefinder
+        useage: /orefinder
+permissions:
+    orefinder.find:
+        description: Gives permission to find all ores
+        default: op
+    orefinder.find.iron:
+        description: Gives permission to find iron
+        default: op
+    orefinder.find.gold:
+        description: Gives permission to find gold
+        default: op
+    orefinder.find.diamond:
+        description: Gives permission to find diamond
+        default: op
