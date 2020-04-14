@@ -93,6 +93,7 @@ public final class OreFinder extends JavaPlugin {
                 }
                 msg += ChatColor.RED.toString() + seconds + " seconds ";
                 msg += ChatColor.GOLD.toString() + "remaining";
+                sender.sendMessage(msg);
                 return;
             }
         }
@@ -178,7 +179,7 @@ public final class OreFinder extends JavaPlugin {
         if (goldCooldowns.containsKey(sender.getName())) {
             if (currentTime - goldCooldowns.get(sender.getName()) < FIND_GOLD_COOLDOWN * 1000) {
                 int timePassed = (int) ((currentTime - goldCooldowns.get(sender.getName())) / 1000);
-                int timeLeft = FIND_IRON_COOLDOWN - timePassed;
+                int timeLeft = FIND_GOLD_COOLDOWN - timePassed;
                 sender.sendMessage(ChatColor.RED.toString() + "Cooldown: " + timeLeft + " Seconds left.");
                 return;
             }
