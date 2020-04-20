@@ -25,12 +25,14 @@ import org.bukkit.plugin.java.JavaPlugin;
 public final class OreFinder extends JavaPlugin {
 
     private final int FIND_IRON_COOLDOWN = 30;
+    private final int FIND_LAPIS_COOLDOWN = 45;
     private final int FIND_GOLD_COOLDOWN = 60;
     private final int FIND_DIAMOND_COOLDOWN = 300;
-    private Map<String, Long> ironCooldowns = new HashMap<>();
-    private Map<String, Long> goldCooldowns = new HashMap<>();
-    private Map<String, Long> diamondCooldowns = new HashMap<>();
-
+    public Map<String, Long> ironCooldowns = new HashMap<>();
+    public Map<String, Long> goldCooldowns = new HashMap<>();
+    public Map<String, Long> lapisCooldowns = new HashMap<>();
+    public Map<String, Long> diamondCooldowns = new HashMap<>();
+   
     @Override
     public void onEnable() {
         getCommand("find").setTabCompleter(new FindTabCompleter());
@@ -57,6 +59,8 @@ public final class OreFinder extends JavaPlugin {
                     FindIron((Player) sender);
                 } else if (ore.equalsIgnoreCase("gold")) {
                     FindGold((Player) sender);
+                } else if(ore.equalsIgnoreCase("lapis")) {
+                    FindLapis((Player)sender);
                 } else if (ore.equalsIgnoreCase("diamond")) {
                     FindDiamond((Player)sender);
                 }else {
@@ -164,6 +168,94 @@ public final class OreFinder extends JavaPlugin {
                 sender.sendMessage(ChatColor.GOLD.toString() + "Closest diamond ore is " + ChatColor.RED.toString() + df.format(closestBlockDistance) + ChatColor.GOLD.toString() + " blocks away.");
             } else {
                 sender.sendMessage(ChatColor.GOLD.toString() + "There is no close diamond ore!");
+            }
+                
+            return;
+        }
+    }
+    public void FindLapis(Player sender) {
+        DecimalFormat df = new DecimalFormat("#.##");
+        if(!sender.hasPermission("orefinder.find") && !sender.hasPermission("orefinder.find.lapis")) {
+            sender.sendMessage(ChatColor.RED.toString() + "You don't have permission to do this!");
+            return;
+        }
+        long currentTime = System.currentTimeMillis();
+        if (lapisCooldowns.containsKey(sender.getName())) {
+            if (currentTime - lapisCooldowns.get(sender.getName()) < FIND_LAPIS_COOLDOWN * 1000) {
+                int timePassed = (int) ((currentTime - lapisCooldowns.get(sender.getName())) / 1000);
+                int timeLeft = FIND_LAPIS_COOLDOWN - timePassed;
+                sender.sendMessage(ChatColor.RED.toString() + "Cooldown: " + timeLeft + " Seconds left.");
+                return;
+            }
+        }
+        lapisCooldowns.put(sender.getName(), currentTime);
+        World world = sender.getWorld();
+        if (world.getEnvironment() == Environment.NETHER) {
+            sender.sendMessage(ChatColor.GOLD.toString() + "There is no lapis in the nether.");
+            return;
+        }
+        
+        Block highestBlock = world.getHighestBlockAt(sender.getLocation());
+        if (highestBlock.getLocation().getBlockY() > sender.getLocation().getBlockY()) {
+            Block[] lapisBlocks = new Block[0];
+            //Start at players location and get nearest iron up then down, then compare distances (if there is an iron block
+            for (int x = sender.getLocation().getBlockX() - 40; x <= sender.getLocation().getBlockX() + 40; x++) {
+                for (int y = sender.getLocation().getBlockY(); y <= highestBlock.getLocation().getBlockY(); y++) {
+                    for (int z = sender.getLocation().getBlockZ() - 40; z <= sender.getLocation().getBlockZ() + 40; z++) {
+                        Block thisBlock = world.getBlockAt(x, y, z);
+                        if (thisBlock.getBlockData().getMaterial() == Material.LAPIS_ORE) {
+                            lapisBlocks = extendBlockArray(lapisBlocks, thisBlock);
+                        }
+                    }
+                }
+            }
+            for (int x = sender.getLocation().getBlockX() - 40; x <= sender.getLocation().getBlockX() + 40; x++) {
+                for (int y = sender.getLocation().getBlockY(); y >= 0; y--) {
+                    for (int z = sender.getLocation().getBlockZ() - 40; z <= sender.getLocation().getBlockZ() + 40; z++) {
+                        Block thisBlock = world.getBlockAt(x, y, z);
+                        if (thisBlock.getBlockData().getMaterial() == Material.LAPIS_ORE) {
+                            lapisBlocks = extendBlockArray(lapisBlocks, thisBlock);
+                        }
+                    }
+                }
+            }
+            //Check Closest Block of Iron in the array
+            double closestBlockDistance = 3000;
+            for (Block b : lapisBlocks) {
+                double distance = getBlockDistance(sender, b);
+                if (distance < closestBlockDistance) {
+                    closestBlockDistance = distance;
+                }
+            }
+            if (closestBlockDistance != 3000) {
+                sender.sendMessage(ChatColor.GOLD.toString() + "Closest lapis ore is " + ChatColor.RED.toString() + df.format(closestBlockDistance) + ChatColor.GOLD.toString() + " blocks away.");
+            } else {
+                sender.sendMessage(ChatColor.GOLD.toString() + "There is no close lapis ore!");
+            }
+            return;
+        } else {
+            Block[] lapisBlocks = new Block[0];
+            for (int x = sender.getLocation().getBlockX() - 60; x <= sender.getLocation().getBlockX() + 60; x++) {
+                for (int y = sender.getLocation().getBlockY(); y >= 0; y--) {
+                    for (int z = sender.getLocation().getBlockZ() - 60; z <= sender.getLocation().getBlockZ() + 60; z++) {
+                        Block thisBlock = world.getBlockAt(x, y, z);
+                        if (thisBlock.getBlockData().getMaterial() == Material.LAPIS_ORE) {
+                            lapisBlocks = extendBlockArray(lapisBlocks, thisBlock);
+                        }
+                    }
+                }
+            }
+            double closestBlockDistance = 3000;
+            for (Block b : lapisBlocks) {
+                double distance = getBlockDistance(sender, b);
+                if (distance < closestBlockDistance) {
+                    closestBlockDistance = distance;
+                }
+            }
+            if(closestBlockDistance == 3000) {
+                sender.sendMessage(ChatColor.GOLD.toString() + "Closest lapis ore is " + ChatColor.RED.toString() + df.format(closestBlockDistance) + ChatColor.GOLD.toString() + " blocks away.");
+            } else {
+                sender.sendMessage(ChatColor.GOLD.toString() + "There is no close lapis ore!");
             }
                 
             return;
